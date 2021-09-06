@@ -31,7 +31,15 @@ FACTEUR: '(' EXPRESSION_AR ')'
     | '+' FACTEUR %prec PLUSU
     | NOMBRE
     | IDENT
+    | IDENT '(' ARGUMENTS ')'
     ;
+
+ARGUMENTS: resultat ',' ARGUMENTS
+    | resultat
+    | VIDE
+    ;
+
+VIDE: ;
 
 EXPRESSION_BOOL: EXPRESSION_BOOL  AND CONDITION
     | EXPRESSION_BOOL OR CONDITION
