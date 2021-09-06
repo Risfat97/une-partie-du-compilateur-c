@@ -1,7 +1,7 @@
-lyc: lex.yy.o parseur.tab.o main.o
-	gcc -o lyc lex.yy.o parseur.tab.o main.o
+lyc: parseur.tab.o lex.yy.o main.o
+	gcc -o lyc parseur.tab.o lex.yy.o main.o
 
-ley.yy.c: lexeur.l
+lex.yy.c: lexeur.l
 	flex lexeur.l
 
 parseur.tab.c: parseur.y

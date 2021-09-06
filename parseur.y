@@ -1,11 +1,14 @@
 %{
     #include <stdio.h>
     #include <stdlib.h>
-    int yyerror(const char* err);
+    void yyerror(const char*);
     int yylex();
 %}
 
-%token NOMBRE OPERATEUR COMP LOGIC_OP
+%token NOMBRE IDENT LEQ EQ AND OR
+%left '+' '-'
+%left '*' '/'
+%nonassoc MOINSU PLUSU
 %start resultat /* axiom */
 
 %%
@@ -13,33 +16,47 @@ resultat: EXPRESSION_AR
     | EXPRESSION_BOOL
     ;
 
-EXPRESSION_AR: EXPRESSION_AR OPERATEUR EXPRESSION_AR
-    | '-' NOMBRE
-    | '+' NOMBRE
-    | NOMBRE
-    | '(' EXPRESSION_AR ')'
+EXPRESSION_AR: EXPRESSION_AR '+' TERME
+    | EXPRESSION_AR '-' TERME
+    | TERME
     ;
 
-EXPRESSION_BOOL: EXPRESSION_BOOL  LOGIC_OP EXPRESSION_BOOL
-    | '!' EXPRESSION_BOOL
-    | '(' EXPRESSION_BOOL ')'
-    | EXPRESSION_BOOL COMP EXPRESSION_BOOL
-    | EXPRESSION_BOOL OPERATEUR EXPRESSION_BOOL
-    | EXPRESSION_AR OPERATEUR EXPRESSION_BOOL
-    | EXPRESSION_BOOL OPERATEUR EXPRESSION_AR
-    | EXPRESSION_AR COMP EXPRESSION_BOOL
-    | EXPRESSION_BOOL COMP EXPRESSION_AR
-    | EXPRESSION_AR COMP EXPRESSION_AR
+TERME: TERME '*' FACTEUR
+    | TERME '/' FACTEUR
+    | FACTEUR
+    ;
+
+FACTEUR: '(' EXPRESSION_AR ')'
+    | '-' FACTEUR %prec MOINSU
+    | '+' FACTEUR %prec PLUSU
+    | NOMBRE
+    | IDENT
+    ;
+
+EXPRESSION_BOOL: EXPRESSION_BOOL  AND CONDITION
+    | EXPRESSION_BOOL OR CONDITION
+    | CONDITION
+    ;
+
+CONDITION: CONDITION '<' AUTRE_CONDITION
+    | CONDITION LEQ AUTRE_CONDITION
+    | CONDITION EQ AUTRE_CONDITION
+    | CONDITION '+' AUTRE_CONDITION
+    | CONDITION '-' AUTRE_CONDITION
+    | CONDITION '*' AUTRE_CONDITION
+    | CONDITION '/' AUTRE_CONDITION
+    | AUTRE_CONDITION
+    ;
+
+AUTRE_CONDITION: '(' EXPRESSION_BOOL ')'
+    | '!' AUTRE_CONDITION
     | EXPRESSION_AR
     ;
-
 %%
 
-int yyerror(const char* err){
+void yyerror(const char* err){
     fprintf(stderr, "erreur de syntaxe\n");
-    return 1;
 }
-
 
 int yywrap(){
     return 1;
