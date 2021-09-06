@@ -5,7 +5,7 @@
     int yylex();
 %}
 
-%token NOMBRE IDENT LEQ EQ AND OR
+%token ENTIER REEL IDENT LEQ EQ AND OR
 %left '+' '-'
 %left '*' '/'
 %nonassoc MOINSU PLUSU
@@ -29,7 +29,8 @@ TERME: TERME '*' FACTEUR
 FACTEUR: '(' EXPRESSION_AR ')'
     | '-' FACTEUR %prec MOINSU
     | '+' FACTEUR %prec PLUSU
-    | NOMBRE
+    | ENTIER
+    | REEL
     | IDENT
     | IDENT '(' ARGUMENTS ')'
     ;
