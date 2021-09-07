@@ -5,13 +5,19 @@
     int yylex();
 %}
 
-%token ENTIER REEL IDENT LEQ EQ AND OR
+%token ENTIER REEL IDENT LEQ EQ AND OR INT FLOAT DOUBLE CHAR IF ELSE WHILE
 %left '+' '-'
 %left '*' '/'
 %nonassoc MOINSU PLUSU
-%start resultat /* axiom */
+%start main /* axiom */
 
 %%
+
+main: DECLARATION
+    | LISTE_INSTR
+    | DECLARATION LISTE_INSTR
+    ;
+
 resultat: EXPRESSION_AR
     | EXPRESSION_BOOL
     ;
@@ -60,6 +66,43 @@ CONDITION: CONDITION '<' AUTRE_CONDITION
 AUTRE_CONDITION: '(' EXPRESSION_BOOL ')'
     | '!' AUTRE_CONDITION
     | EXPRESSION_AR
+    ;
+
+DECLARATION: INT IDENT ';'
+    | FLOAT IDENT ';'
+    | DOUBLE IDENT ';'
+    | CHAR IDENT ';'
+    ;
+
+INSTRUCTION: ';'
+    | IDENT '=' resultat ';'
+    | INSTRUCTION '\n'
+    ;
+
+LISTE_INSTR: INSTRUCTION
+    | INSTRUCTION INSTRUCTION
+    | BLOC
+    | IF_INST
+    | IF_ELSE
+    | BOUCLE
+    | LISTE_INSTR LISTE_INSTR
+    ;
+
+BLOC: '{' '}'
+    | '{' LISTE_INSTR '}'
+    | '{' BLOC '}'
+    ;
+
+IF_INST: IF '(' EXPRESSION_BOOL ')' LISTE_INSTR
+    ;
+
+ELSE_INST: ELSE LISTE_INSTR
+    ;
+
+IF_ELSE: IF_INST ELSE_INST
+    ;
+
+BOUCLE: WHILE '(' EXPRESSION_BOOL ')' LISTE_INSTR
     ;
 %%
 
