@@ -1,5 +1,6 @@
 %{
     #include <stdio.h>
+    #include <stdlib.h>
     #include "parseur.tab.h"
 %}
 
@@ -28,9 +29,9 @@ or              "||"
 {if_i}              {printf("lex::IF %s\n", yytext); return IF;}
 {else_i}            {printf("lex::ELSE %s\n", yytext); return ELSE;}
 {while_i}           {printf("lex::WHILE %s\n", yytext); return WHILE;}
-{reel}              {printf("lex::REEL %s\n", yytext); return REEL;}
-{entier}            {printf("lex::ENTIER %s\n", yytext); return ENTIER;}
-{ident}             {printf("lex::IDENT %s\n", yytext); return IDENT;}
+{reel}              {printf("lex::REEL %s\n", yytext); yylval.dval = atof(yytext); return REEL;}
+{entier}            {printf("lex::ENTIER %s\n", yytext); yylval.ival = atoi(yytext); return ENTIER;}
+{ident}             {printf("lex::IDENT %s\n", yytext); strcpy(yylval.sval, yytext); return IDENT;}
 {and}               {printf("lex::AND %s\n", yytext); return AND;}
 {or}                {printf("lex::OR %s\n", yytext); return OR;}
 {leq}               {printf("lex::LEQ %s\n", yytext); return LEQ;};
