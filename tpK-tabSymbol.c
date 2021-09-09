@@ -64,14 +64,18 @@ void afficheTSymb(void) {
 	printf("\n--- Contenu Table des Symboles : ---\n\n");
 	for(i=base;i<sommet;i++) {
 		switch(tsymb[i].classe) {
-			case 0: classe = "C_FONCTION";break;
-			case 1: classe = "C_GLOBAL";break;
-			case 2: classe = "C_ARG";break;
-			case 3: classe = "C_LOCAL";break;
+			case C_FONCTION: classe = "C_FONCTION";break;
+			case C_GLOBAL: classe = "C_GLOBAL";break;
+			case C_ARG: classe = "C_ARG";break;
+			case C_LOCAL: classe = "C_LOCAL";break;
 		}
 		switch(tsymb[i].type) {
-			case 0: type = "T_ENTIER";break;
-			case 1: type = "T_TABLEAU";break;
+			case T_ENTIER: type = "T_ENTIER";break;
+			case T_TABLEAU: type = "T_TABLEAU";break;
+			case T_FLOAT: type = "T_FLOAT";break;
+			case T_DOUBLE: type = "T_DOUBLE";break;
+			case T_CHAR: type = "T_CHAR";break;
+			case T_VOID: type = "T_VOID";break;
 		}
 		printf("Entrée : %s (%s, %s, %d, %d)\n", tsymb[i].identif, classe, type, \
 			tsymb[i].adresse, tsymb[i].complement);

@@ -1,11 +1,13 @@
 #ifndef __TPK_TAB_SYMBOL_H__
 #define __TPK_TAB_SYMBOL_H__
 
+typedef enum {C_FONCTION, C_GLOBAL, C_ARG, C_LOCAL} classe_t;
+typedef	enum {T_ENTIER, T_FLOAT, T_DOUBLE, T_CHAR, T_VOID, T_TABLEAU} type_t;
+
 typedef struct { 	/* selon cm-table-symboles.pdf */
 	char *identif; 	/* en général un léxème */
-	int classe; 	/* C_FONCTION, ou contexte de variable : C_GLOBAL, C_ARG
-, C_LOCAL */
-	int type; 	/* source L : T_ENTIER, T_TABLEAU */
+	classe_t classe;
+	type_t type;
 	int adresse; 
 	int complement; /* ex.: nombre d'argument d'une fonction */
 } ENTREE_TSYMB;

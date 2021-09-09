@@ -26,7 +26,7 @@ all:
 	lyc
 
 targz: 
-	tar -zcvf Ndiour_TafsirMbodj.tar.gz main.c parseur.y lexeur.l
+	tar -zcvf Ndiour_TafsirMbodj.tar.gz main.c parseur.y lexeur.l tpK-tabSymbol.h tpK-tabSymbol.c arbre-abstrait.h arbre-abstrait.c
 
 clean:
 	rm -f *.o lyc lex.yy.c parseur.tab.*

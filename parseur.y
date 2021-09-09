@@ -5,6 +5,13 @@
     #include "arbre-abstrait.h"
     #include "tpK-tabSymbol.h"
 
+    int nbParams = 0;
+    int nbVarGlob = 0;
+    int nbVarLoc = 0;
+    int nbFonc = 0;
+    classe_t contexte = C_GLOBAL;
+    type_t typeVar;
+
     void yyerror(const char*);
     int yylex();
 }
@@ -25,7 +32,7 @@
 
 %%
 
-program: LISTE_DEC_VAR LISTE_DEC_FUNC MAIN BLOC LISTE_DEF_FUNC
+program: LISTE_DEC_VAR LISTE_DEC_FUNC MAIN {contexte = C_LOCAL; ajouterEntree("main", C_FONCTION, T_ENTIER, nbFonc++, 0);} BLOC LISTE_DEF_FUNC
     | main
     ;
 
@@ -34,45 +41,45 @@ BLOC: '{' LISTE_INSTR '}'
     | '{' BLOC '}'
     ;
     
-LISTE_DEC_VAR: DECLARATION_VAR LISTE_DEC_VAR
+LISTE_DEC_VAR: {contexte = C_GLOBAL;} DECLARATION_VAR {nbVarGlob++;} LISTE_DEC_VAR
     | VIDE
     ;
 
-LISTE_DEC_FUNC: DECLARATION_FUNC ';' LISTE_DEC_FUNC
+LISTE_DEC_FUNC: {contexte = C_FONCTION;} DECLARATION_FUNC ';' {nbFonc++;} LISTE_DEC_FUNC
     | VIDE
     ;
 
-LISTE_DEF_FUNC: DECLARATION_FUNC BLOC LISTE_DEF_FUNC
+LISTE_DEF_FUNC: {contexte = C_FONCTION;} DECLARATION_FUNC BLOC LISTE_DEF_FUNC
     | VIDE
     ;
 
-DECLARATION_FUNC: INT SUITE_DEC_FUNC
-    | DOUBLE SUITE_DEC_FUNC
-    | CHAR SUITE_DEC_FUNC
-    | FLOAT SUITE_DEC_FUNC
-    | VOID SUITE_DEC_FUNC
+DECLARATION_FUNC: {typeVar = T_ENTIER;} INT SUITE_DEC_FUNC
+    | {typeVar = T_DOUBLE;} DOUBLE SUITE_DEC_FUNC
+    | {typeVar = T_CHAR;} CHAR SUITE_DEC_FUNC
+    | {typeVar = T_FLOAT;} FLOAT SUITE_DEC_FUNC
+    | {typeVar = T_VOID;} VOID SUITE_DEC_FUNC
     ;
 
-SUITE_DEC_FUNC: IDENT '(' LISTE_PARAM ')'
-    | IDENT PARENTH_O_F
+SUITE_DEC_FUNC: IDENT {nbParams = 0;} '(' LISTE_PARAM ')'   {ajouterEntree($1, contexte, typeVar, nbFonc, nbParams);}
+    | IDENT PARENTH_O_F {ajouterEntree($1, contexte, typeVar, nbFonc, 0);}
     ;
 
-LISTE_PARAM: PARAM
+LISTE_PARAM: PARAM  
     | PARAM ',' LISTE_PARAM
     ;
 
 VIDE: ;
 
-PARAM: INT IDENT
-    | DOUBLE IDENT
-    | CHAR IDENT
-    | FLOAT IDENT
+PARAM: INT IDENT {nbParams++;}
+    | DOUBLE IDENT {nbParams++;}
+    | CHAR IDENT {nbParams++;}
+    | FLOAT IDENT {nbParams++;}
     ;
 
-DECLARATION_VAR: INT IDENT ';'
-    | FLOAT IDENT ';'
-    | DOUBLE IDENT ';'
-    | CHAR IDENT ';'
+DECLARATION_VAR: {typeVar = T_ENTIER;} INT IDENT ';'  {ajouterEntree($3, contexte, typeVar, nbVarGlob, 0);}
+    | {typeVar = T_FLOAT;} FLOAT IDENT ';'    {ajouterEntree($3, contexte, typeVar, nbVarGlob, 0);}
+    | {typeVar = T_DOUBLE;} DOUBLE IDENT ';'   {ajouterEntree($3, contexte, typeVar, nbVarGlob, 0);}
+    | {typeVar = T_CHAR;} CHAR IDENT ';'     {ajouterEntree($3, contexte, typeVar, nbVarGlob, 0);}
     ;
 
 LISTE_INSTR: DECLARATION_VAR
@@ -130,6 +137,7 @@ FACTEUR: '(' EXPRESSION_AR ')'          {$$ = $2;}
 
 APPEL_FUNC: IDENT PARENTH_O_F           {$$ = NULL;}
     | IDENT '(' ARGUMENTS ')'           {$$ = NULL;}
+    ;
 
 ARGUMENTS: resultat ',' ARGUMENTS
     | resultat
