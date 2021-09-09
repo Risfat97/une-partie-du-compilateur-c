@@ -19,7 +19,7 @@ tpK-tabSymbol.o: tpK-tabSymbol.h tpK-tabSymbol.c
 arbre-abstrait.o: arbre-abstrait.h arbre-abstrait.c
 	gcc -c -Wall arbre-abstrait.c
 
-main.o: main.c
+main.o: main.c tpK-tabSymbol.h
 	gcc -c -Wall main.c
 
 all: 
