@@ -1,20 +1,17 @@
-%code requires {
+%{
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
     #include "arbre-abstrait.h"
     #include "tpK-tabSymbol.h"
 
-    int nbParams = 0;
-    int nbVarGlob = 0;
-    int nbVarLoc = 0;
-    int nbFonc = 0;
+    int nbParams = 0, nbVarGlob = 0, nbVarLoc = 0, nbFonc = 0;
     classe_t contexte = C_GLOBAL;
     type_t typeVar;
 
     void yyerror(const char*);
     int yylex();
-}
+%}
 
 %define parse.lac full
 %define parse.error verbose
@@ -24,7 +21,7 @@
 %token <sval> IDENT
 %token <ival> ENTIER 
 %token <dval> REEL
-%type <arbre> resultat EXPRESSION_AR EXPRESSION_BOOL TERME FACTEUR CONDITION AUTRE_CONDITION APPEL_FUNC
+%type <arbre> EXPRESSION EXPRESSION_AR EXPRESSION_BOOL TERME FACTEUR CONDITION AUTRE_CONDITION APPEL_FUNC
 %left '+' '-'
 %left '*' '/'
 %nonassoc MOINSU PLUSU
@@ -37,8 +34,8 @@ program: LISTE_DEC_VAR LISTE_DEC_FUNC MAIN {contexte = C_LOCAL; ajouterEntree("m
     ;
 
 BLOC: '{' LISTE_INSTR '}'
-    | '{' VIDE '}'
     | '{' BLOC '}'
+    | '{' '}'
     ;
     
 LISTE_DEC_VAR: {contexte = C_GLOBAL;} DECLARATION_VAR {nbVarGlob++;} LISTE_DEC_VAR
@@ -61,7 +58,7 @@ DECLARATION_FUNC: {typeVar = T_ENTIER;} INT SUITE_DEC_FUNC
     ;
 
 SUITE_DEC_FUNC: IDENT {nbParams = 0;} '(' LISTE_PARAM ')'   {ajouterEntree($1, contexte, typeVar, nbFonc, nbParams);}
-    | IDENT PARENTH_O_F {ajouterEntree($1, contexte, typeVar, nbFonc, 0);}
+    | IDENT PARENTH_O_F                                     {ajouterEntree($1, contexte, typeVar, nbFonc, 0);}
     ;
 
 LISTE_PARAM: PARAM  
@@ -82,19 +79,18 @@ DECLARATION_VAR: {typeVar = T_ENTIER;} INT IDENT ';'  {ajouterEntree($3, context
     | {typeVar = T_CHAR;} CHAR IDENT ';'     {ajouterEntree($3, contexte, typeVar, nbVarGlob, 0);}
     ;
 
-LISTE_INSTR: DECLARATION_VAR
+LISTE_INSTR: INSTRUCTION LISTE_INSTR
     | INSTRUCTION
-    | INSTRUCTION INSTRUCTION
-    | IF_INST
-    | IF_ELSE
-    | BOUCLE
-    | LISTE_INSTR LISTE_INSTR
-    | BLOC
     ;
 
 INSTRUCTION: ';'
-    | IDENT '=' resultat ';'
-    | APPEL_FUNC
+    | DECLARATION_VAR
+    | IDENT '=' EXPRESSION ';'
+    | APPEL_FUNC ';'
+    | IF_INST
+    | IF_ELSE
+    | BOUCLE
+    | BLOC
     ;
 
 IF_INST: IF '(' EXPRESSION_BOOL ')' LISTE_INSTR
@@ -109,20 +105,20 @@ IF_ELSE: IF_INST ELSE_INST
 BOUCLE: WHILE '(' EXPRESSION_BOOL ')' LISTE_INSTR
     ;
 
-main: resultat ';'                      {afficher_arbre($1); printf("\n");}
+main: EXPRESSION ';'                      {afficher_arbre($1); printf("\n"); arbre_vider($1);}
     ;
 
-resultat: EXPRESSION_AR                 {$$ = $1;}
+EXPRESSION: EXPRESSION_AR                 {$$ = $1;}
     | EXPRESSION_BOOL                   {$$ = $1;}
     ;
 
-EXPRESSION_AR: EXPRESSION_AR '+' TERME  {$$ = arbre_ajout_lettre('+', $1, $3);}
-    | EXPRESSION_AR '-' TERME           {$$ = arbre_ajout_lettre('-', $1, $3);}
+EXPRESSION_AR: TERME '+' EXPRESSION_AR  {$$ = arbre_ajout_lettre('+', $1, $3);}
+    | TERME  '-' EXPRESSION_AR          {$$ = arbre_ajout_lettre('-', $1, $3);}
     | TERME                             {$$ = $1;}
     ;
 
-TERME: TERME '*' FACTEUR                {$$ = arbre_ajout_lettre('*', $1, $3);}
-    | TERME '/' FACTEUR                 {$$ = arbre_ajout_lettre('/', $1, $3);}
+TERME: FACTEUR '*' TERME                {$$ = arbre_ajout_lettre('*', $1, $3);}
+    | FACTEUR '/' TERME                {$$ = arbre_ajout_lettre('/', $1, $3);}
     | FACTEUR                           {$$ = $1;}
     ;
 
@@ -139,23 +135,23 @@ APPEL_FUNC: IDENT PARENTH_O_F           {$$ = NULL;}
     | IDENT '(' ARGUMENTS ')'           {$$ = NULL;}
     ;
 
-ARGUMENTS: resultat ',' ARGUMENTS
-    | resultat
+ARGUMENTS: EXPRESSION ',' ARGUMENTS
+    | EXPRESSION
     ;
 
-EXPRESSION_BOOL: EXPRESSION_BOOL  AND CONDITION {$$ = arbre_ajout_texte("&&", $1, $3);}
-    | EXPRESSION_BOOL OR CONDITION              {$$ = arbre_ajout_texte("||", $1, $3);}
+EXPRESSION_BOOL: CONDITION AND EXPRESSION_BOOL {$$ = arbre_ajout_texte("&&", $1, $3);}
+    | CONDITION OR EXPRESSION_BOOL             {$$ = arbre_ajout_texte("||", $1, $3);}
     | '(' EXPRESSION_BOOL ')'                   {$$ = $2;}
     | CONDITION                                 {$$ = $1;}
     ;
 
-CONDITION: CONDITION '<' AUTRE_CONDITION        {$$ = arbre_ajout_lettre('<', $1, $3);}
-    | CONDITION LEQ AUTRE_CONDITION             {$$ = arbre_ajout_texte("<=", $1, $3);}
-    | CONDITION EQ AUTRE_CONDITION              {$$ = arbre_ajout_texte("==", $1, $3);}
-    | CONDITION '+' AUTRE_CONDITION             {$$ = arbre_ajout_lettre('+', $1, $3);}
-    | CONDITION '-' AUTRE_CONDITION             {$$ = arbre_ajout_lettre('-', $1, $3);}
-    | CONDITION '*' AUTRE_CONDITION             {$$ = arbre_ajout_lettre('*', $1, $3);}
-    | CONDITION '/' AUTRE_CONDITION             {$$ = arbre_ajout_lettre('/', $1, $3);}
+CONDITION: AUTRE_CONDITION '<' CONDITION        {$$ = arbre_ajout_lettre('<', $1, $3);}
+    | AUTRE_CONDITION LEQ CONDITION             {$$ = arbre_ajout_texte("<=", $1, $3);}
+    | AUTRE_CONDITION EQ CONDITION              {$$ = arbre_ajout_texte("==", $1, $3);}
+    | AUTRE_CONDITION '+' CONDITION             {$$ = arbre_ajout_lettre('+', $1, $3);}
+    | AUTRE_CONDITION '-' CONDITION             {$$ = arbre_ajout_lettre('-', $1, $3);}
+    | AUTRE_CONDITION '*' CONDITION             {$$ = arbre_ajout_lettre('*', $1, $3);}
+    | AUTRE_CONDITION '/' CONDITION             {$$ = arbre_ajout_lettre('/', $1, $3);}
     | AUTRE_CONDITION                           {$$ = $1;}
     ;
 

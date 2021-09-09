@@ -24,6 +24,8 @@ Arbre arbre_ajout_entier(int val, Arbre fg, Arbre fd);
 Arbre arbre_ajout_reel(double val, Arbre fg, Arbre fd);
 Arbre arbre_ajout_lettre(char val, Arbre fg, Arbre fd);
 Arbre arbre_ajout_texte(char val[32], Arbre fg, Arbre fd);
+void arbre_vider(Arbre arbre);
 void afficher_arbre(Arbre arbre);
+
 
 #endif

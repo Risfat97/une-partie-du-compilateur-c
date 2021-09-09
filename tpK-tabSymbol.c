@@ -1,16 +1,7 @@
 #include <stdio.h>      /* fprintf */
 #include <stdlib.h>     /* EXIT_SUCCESS */
 #include <string.h>	    /* strcmp */
-#include "tpK-tabSymbol.h"
-
-/* prototypes */
-//void creerTSymb(void) ;
-//void agrandirTSymb(void) ;
-//int erreurFatale(char *message) ; 
-//void ajouterEntree(char *identif, int classe, int type, int adresse, int complement) ;
-//int existe(char * id);
-//void afficheTSymb(void) ;
-    
+#include "tpK-tabSymbol.h"    
 
 /* definitions */
 int erreurFatale(char *message) { 
@@ -81,4 +72,8 @@ void afficheTSymb(void) {
 			tsymb[i].adresse, tsymb[i].complement);
 	}
 	printf("\n----------------------\n\n");
+}
+
+void viderTSymb(){
+	free(tsymb);
 }

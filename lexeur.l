@@ -1,7 +1,9 @@
 %{
+    #include "arbre-abstrait.h"
+    #include "tpK-tabSymbol.h"
+    #include "parseur.tab.h"
     #include <stdio.h>
     #include <stdlib.h>
-    #include "parseur.tab.h"
 %}
 
 int_t           "int"

@@ -94,3 +94,11 @@ void afficher_arbre(Arbre arbre){
         printf("] ");
     }
 }
+
+void arbre_vider(Arbre arbre){
+    if(arbre){
+        arbre_vider(arbre->left);
+        arbre_vider(arbre->right);
+        free(arbre);
+    }
+}

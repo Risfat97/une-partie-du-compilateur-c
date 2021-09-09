@@ -25,6 +25,7 @@ void agrandirTSymb(void) ;
 int erreurFatale(char *message) ; 
 void ajouterEntree(char *identif, int classe, int type, int adresse, int complement) ;
 int existe(char * id);
-void afficheTSymb(void) ;
+void afficheTSymb(void);
+void viderTSymb();
 
 #endif

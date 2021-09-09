@@ -9,5 +9,6 @@ int main(int argc, char* argv[]){
     if(yyparse() == 0)
         printf("Analyse réussie\n");
     afficheTSymb();
+    viderTSymb();
     exit(EXIT_SUCCESS);
 }
