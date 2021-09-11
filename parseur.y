@@ -6,7 +6,7 @@
     #include <string.h>
 
     extern int yylineno;
-    int nbParams = 0, adrSave, returnToADrSave = 0;
+    int nbParams = 0, nbArgs = 0, adrSave, returnToADrSave = 0;
     void yyerror(const char*);
     int yylex();
 %}
@@ -44,7 +44,16 @@ DECLARATION: PROTOTYPE
         }
     ;
 
-PROTOTYPE: INT IDENT {entree_fonction();} SUITE_DEC_FUNC {sortie_fonction();} ';' 
+PROTOTYPE: INT IDENT 
+        {
+            adrSave = sommet;
+            returnToADrSave = ajoute_fonction($2, 0);
+        }
+     SUITE_DEC_FUNC  
+        {
+            if(returnToADrSave)
+                tsymb[adrSave].complement = nbParams;
+        } ';' 
     ;
 
 SUITE_DEC_FUNC: '(' ')' {nbParams = 0;}
@@ -115,14 +124,12 @@ LISTE_DEF_FUNC:  DEFINITION_FUNC LISTE_DEF_FUNC
 
 DEFINITION_FUNC: INT IDENT 
         {
-            adrSave = sommet;
-            returnToADrSave = ajoute_fonction($2, 0);
+            entree_fonction();
         }
     SUITE_DEC_FUNC 
         {
-            if(returnToADrSave)
-                tsymb[adrSave].complement = nbParams;
-            entree_fonction();
+            int tmp = recherche_executable($2, yylineno);
+            verifier_fonction($2, tsymb[tmp].complement, nbParams, yylineno, PARAMS);
         } 
     BLOC 
         {
@@ -186,7 +193,7 @@ FACTEUR: '(' EXPRESSION_AR ')'          {$$ = $2;}
     | ENTIER                            {$$ = arbre_init_entier($1);}
     | IDENT 
         {
-            if(recherche_executable($1, yylineno))
+            if(recherche_executable($1, yylineno) != -1)
                 $$ = arbre_init_texte($1);
             else 
                 $$ = NULL;
@@ -194,12 +201,27 @@ FACTEUR: '(' EXPRESSION_AR ')'          {$$ = $2;}
     | APPEL_FUNC                        {$$ = NULL;}
     ;
 
-APPEL_FUNC: IDENT '(' ')'           {$$ = NULL;}
-    | IDENT '(' ARGUMENTS ')'           {$$ = NULL;}
+APPEL_FUNC: IDENT  '(' ')' {nbArgs = 0;}
+        {
+            $$ = NULL;
+            recherche_executable($1, yylineno);
+        }
+    | IDENT '(' 
+        {
+            nbArgs = 0;
+        }    
+    ARGUMENTS ')'
+        {
+            $$ = NULL;
+            int tmp = recherche_executable($1, yylineno);
+            if(tmp != -1){
+                verifier_fonction($1, tsymb[tmp].complement, nbArgs, yylineno, ARGS);
+            }
+        }
     ;
 
-ARGUMENTS: EXPRESSION ',' ARGUMENTS
-    | EXPRESSION
+ARGUMENTS: EXPRESSION {nbArgs++;} ',' ARGUMENTS
+    | EXPRESSION {nbArgs++;}
     ;
 
 EXPRESSION_BOOL: CONDITION AND EXPRESSION_BOOL {$$ = arbre_ajout_texte("&&", $1, $3);}

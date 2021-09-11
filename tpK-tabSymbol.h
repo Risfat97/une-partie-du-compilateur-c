@@ -4,6 +4,7 @@
 typedef enum {C_FONCTION, C_GLOBAL, C_ARG, C_LOCAL} classe_t;
 typedef	enum {T_ENTIER, T_TABLEAU} type_t;
 typedef enum {ADR_GLOB, ADR_LOC} curseur_adr_t;
+typedef enum {PARAMS, ARGS} flag_fonction_t;
 
 typedef struct { 	/* selon cm-table-symboles.pdf */
 	char *identif; 	/* en général un léxème */
@@ -38,5 +39,6 @@ void sortie_fonction();
 void ajoute_variable(char *identif);
 int ajoute_fonction(char *identif, int nb_params);
 int recherche_executable(char *identif, int line);
+void verifier_fonction(char *identif, int nb_args_ou_params, int nb_args_ou_params_calcule, int line, flag_fonction_t flag);
 
 #endif

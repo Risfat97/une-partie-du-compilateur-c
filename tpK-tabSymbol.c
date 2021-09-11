@@ -104,9 +104,24 @@ int recherche_executable(char *identif, int line){
 		i=i-1; 
 	}
 	if(i >= 0)
-		return 1;
+		return i;
 	char msg[64];
 	sprintf(msg, "%s:%d: error: '%s' undeclared", filename, line, identif);
 	erreurFatale(msg);
-	return 0;
+	return -1;
+}
+
+void verifier_fonction(char *identif, int nb_args_ou_params, int nb_args_ou_params_calcule, int line, flag_fonction_t flag){
+	char msg[256];
+	if(flag == PARAMS){
+		if(nb_args_ou_params != nb_args_ou_params_calcule)
+			sprintf(msg, "%s:%d: error: conflicting types for ‘%s’", filename, line, identif);
+	} else {
+		if(nb_args_ou_params < nb_args_ou_params_calcule)
+			sprintf(msg, "%s:%d: error: too many arguments to function ‘%s’", filename, line, identif);
+		else if(nb_args_ou_params > nb_args_ou_params_calcule)
+			sprintf(msg, "%s:%d: error: too few arguments to function ‘%s’", filename, line, identif);
+	}
+	if(nb_args_ou_params != nb_args_ou_params_calcule)
+		erreurFatale(msg);
 }
