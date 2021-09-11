@@ -1,7 +1,7 @@
+#include "tpK-tabSymbol.h" 
 #include <stdio.h>      /* fprintf */
 #include <stdlib.h>     /* EXIT_SUCCESS */
-#include <string.h>	    /* strcmp */
-#include "tpK-tabSymbol.h"    
+#include <string.h>	    /* strcmp */   
 
 /* definitions */
 int erreurFatale(char *message) { 
@@ -39,6 +39,20 @@ void ajouterEntree(char *identif, int classe, int type, int adresse, int complem
 	sommet++;
 }
 
+void ajoute_variable(char *identif){
+	if(!existe(identif)){
+		ajouterEntree(identif, contexte, typeVar, adrCourant[curseur]++, 0);
+	}
+}
+
+int ajoute_fonction(char *identif, int nb_params){
+	if(!existe(identif)){
+		ajouterEntree(identif, C_FONCTION, typeVar, adrCourant[ADR_GLOB]++, nb_params);
+		return 1;
+	}
+	return 0;
+}
+
 int existe(char * id){
 	int i = sommet-1;
 	while ( (i>=base) && (strcmp(id,tsymb[i].identif)!=0) ){
@@ -70,6 +84,29 @@ void afficheTSymb(void) {
 	printf("\n----------------------\n\n");
 }
 
+void entree_fonction(){
+	base = sommet;
+}
+void sortie_fonction(){
+	afficheTSymb();
+	sommet = base;
+	base = 0;
+	adrCourant[ADR_LOC] = 0;
+}
+
 void viderTSymb(){
 	free(tsymb);
+}
+
+int recherche_executable(char *identif, int line){
+	int i = sommet-1;
+	while ( (i>=0) && (strcmp(identif,tsymb[i].identif)!=0) ){
+		i=i-1; 
+	}
+	if(i >= 0)
+		return 1;
+	char msg[64];
+	sprintf(msg, "%s:%d: error: '%s' undeclared", filename, line, identif);
+	erreurFatale(msg);
+	return 0;
 }

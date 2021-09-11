@@ -1,16 +1,12 @@
 %{
+    #include "tpK-tabSymbol.h"
+    #include "arbre-abstrait.h"
     #include <stdio.h>
     #include <stdlib.h>
     #include <string.h>
-    #include "arbre-abstrait.h"
-    #include "tpK-tabSymbol.h"
 
-    int nbParams = 0;
-    int adrCourant[3] = {0};
-    classe_t contexte = C_GLOBAL;
-    type_t typeVar;
-    curseur_adr_t curseur = ADR_GLOB;
-
+    extern int yylineno;
+    int nbParams = 0, adrSave, returnToADrSave = 0;
     void yyerror(const char*);
     int yylex();
 %}
@@ -35,30 +31,76 @@ program: DECLARATIONS DEFINITIONS
     | main
     ;
 
-DECLARATIONS: DECLARATION DECLARATIONS
-    | DECLARATION
+DECLARATIONS: DECLARATION
+    | DECLARATION DECLARATIONS
     ;
 
-DECLARATION: DECLARATION_VAR ';'
-    | DECLARATION_FUNC ';'
+DECLARATION: PROTOTYPE 
+    | INT IDENT ';'
+        {
+            contexte = C_GLOBAL;
+            curseur = ADR_GLOB;
+            ajoute_variable($2);
+        }
     ;
 
-DECLARATION_FUNC: DECLARATION_VAR SUITE_DEC_FUNC
+PROTOTYPE: INT IDENT {entree_fonction();} SUITE_DEC_FUNC {sortie_fonction();} ';' 
     ;
 
-SUITE_DEC_FUNC: '(' ')'
-    | '(' LISTE_PARAM ')'
+SUITE_DEC_FUNC: '(' ')' {nbParams = 0;}
+    |  '(' 
+        { 
+            contexte = C_LOCAL;
+            curseur = ADR_LOC;
+            nbParams = 0;
+        } 
+    LISTE_PARAM ')' {contexte = C_GLOBAL;}
     ;
 
-DECLARATION_VAR: INT IDENT
+DEFINITIONS: MAIN 
+        {
+            contexte = C_FONCTION; 
+            curseur = ADR_GLOB;
+            ajoute_variable("main"); 
+            entree_fonction(); 
+            contexte = C_LOCAL; 
+            curseur = ADR_LOC;
+        } 
+    BLOC 
+        {
+            sortie_fonction();
+        } 
+    LISTE_DEF_FUNC
+    | MAIN 
+        {
+            contexte = C_FONCTION; 
+            curseur = ADR_GLOB;
+            ajoute_variable("main"); 
+            entree_fonction(); 
+            contexte = C_LOCAL; 
+            curseur = ADR_LOC;
+        } 
+    BLOC 
+        {
+            sortie_fonction();
+        }
     ;
 
-DEFINITIONS: MAIN BLOC
-    | MAIN BLOC LISTE_DEF_FUNC
-    ;
-
-LISTE_PARAM: DECLARATION_VAR ',' LISTE_PARAM
-    | DECLARATION_VAR
+LISTE_PARAM: INT IDENT 
+        {
+            nbParams++;
+            contexte = C_LOCAL;
+            curseur = ADR_LOC;
+            ajoute_variable($2);    
+        } 
+    ',' LISTE_PARAM
+    | INT IDENT 
+        {
+            nbParams++;
+            contexte = C_LOCAL;
+            curseur = ADR_LOC;
+            ajoute_variable($2);    
+        }
     ;
 
 BLOC: '{' LISTE_INSTR '}'
@@ -66,8 +108,26 @@ BLOC: '{' LISTE_INSTR '}'
     | '{' '}'
     ;
 
-LISTE_DEF_FUNC: DECLARATION_FUNC BLOC LISTE_DEF_FUNC
-    | DECLARATION_FUNC BLOC
+LISTE_DEF_FUNC:  DEFINITION_FUNC LISTE_DEF_FUNC
+    | DEFINITION_FUNC
+    |
+    ;
+
+DEFINITION_FUNC: INT IDENT 
+        {
+            adrSave = sommet;
+            returnToADrSave = ajoute_fonction($2, 0);
+        }
+    SUITE_DEC_FUNC 
+        {
+            if(returnToADrSave)
+                tsymb[adrSave].complement = nbParams;
+            entree_fonction();
+        } 
+    BLOC 
+        {
+            sortie_fonction();
+        }
     ;
 
 LISTE_INSTR: INSTRUCTION LISTE_INSTR
@@ -75,8 +135,17 @@ LISTE_INSTR: INSTRUCTION LISTE_INSTR
     ;
 
 INSTRUCTION: ';'
-    | DECLARATION_VAR ';'
-    | IDENT '=' EXPRESSION ';'
+    | INT IDENT  ';' 
+        {
+            contexte = C_LOCAL;
+            curseur = ADR_LOC;
+            ajoute_variable($2);
+        }
+    | IDENT 
+        {
+            recherche_executable($1, yylineno);
+        } 
+    '=' EXPRESSION ';'
     | APPEL_FUNC ';'
     | IF_ELSE
     | BOUCLE
@@ -89,7 +158,12 @@ IF_ELSE: IF '(' EXPRESSION_BOOL ')' LISTE_INSTR ELSE LISTE_INSTR
 BOUCLE: WHILE '(' EXPRESSION_BOOL ')' LISTE_INSTR
     ;
 
-main: EXPRESSION ';'          {printf("\nArbre syntaxique abstrait correspondant: \n"); afficher_arbre($1); printf("\n"); arbre_vider($1);}
+main: INSTRUCTION
+    | EXPRESSION ';' {
+        printf("\nArbre syntaxique abstrait correspondant: \n"); 
+        afficher_arbre($1); printf("\n"); 
+        arbre_vider($1);
+    }
     ;
 
 EXPRESSION: EXPRESSION_AR               {$$ = $1;}
@@ -110,7 +184,13 @@ FACTEUR: '(' EXPRESSION_AR ')'          {$$ = $2;}
     | '-' FACTEUR %prec MOINSU          {$$ = arbre_ajout_lettre('-', $2, NULL);}
     | '+' FACTEUR %prec PLUSU           {$$ = arbre_ajout_lettre('+', $2, NULL);}
     | ENTIER                            {$$ = arbre_init_entier($1);}
-    | IDENT                             {$$ = arbre_init_texte($1);}
+    | IDENT 
+        {
+            if(recherche_executable($1, yylineno))
+                $$ = arbre_init_texte($1);
+            else 
+                $$ = NULL;
+        }
     | APPEL_FUNC                        {$$ = NULL;}
     ;
 

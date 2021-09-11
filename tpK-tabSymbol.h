@@ -3,7 +3,7 @@
 
 typedef enum {C_FONCTION, C_GLOBAL, C_ARG, C_LOCAL} classe_t;
 typedef	enum {T_ENTIER, T_TABLEAU} type_t;
-typedef enum {ADR_GLOB, ADR_LOC, ADR_FONC} curseur_adr_t;
+typedef enum {ADR_GLOB, ADR_LOC} curseur_adr_t;
 
 typedef struct { 	/* selon cm-table-symboles.pdf */
 	char *identif; 	/* en général un léxème */
@@ -19,6 +19,11 @@ typedef struct { 	/* selon cm-table-symboles.pdf */
 /* Variables globales */
 ENTREE_TSYMB *tsymb; 
 int maxTSymb, sommet, base;
+int adrCourant[2];
+classe_t contexte;
+type_t typeVar;
+curseur_adr_t curseur;
+char filename[32];
 
 /* prototypes */
 void creerTSymb(void) ;
@@ -28,5 +33,10 @@ void ajouterEntree(char *identif, int classe, int type, int adresse, int complem
 int existe(char * id);
 void afficheTSymb(void);
 void viderTSymb();
+void entree_fonction();
+void sortie_fonction();
+void ajoute_variable(char *identif);
+int ajoute_fonction(char *identif, int nb_params);
+int recherche_executable(char *identif, int line);
 
 #endif

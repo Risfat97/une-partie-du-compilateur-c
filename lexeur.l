@@ -1,6 +1,5 @@
 %{
     #include "arbre-abstrait.h"
-    #include "tpK-tabSymbol.h"
     #include "parseur.tab.h"
     #include <stdio.h>
     #include <stdlib.h>
@@ -32,7 +31,8 @@ or              "||"
 {main_f}            {printf("lex::MAIN %s\n", yytext); return MAIN;}
 {entier}            {printf("lex::ENTIER %s\n", yytext); yylval.ival = atoi(yytext); return ENTIER;}
 {ident}             {printf("lex::IDENT %s\n", yytext); strcpy(yylval.sval, yytext); return IDENT;}
-({ws}|{nl})         ;
+{ws}                ;
+{nl}                {yylineno++;}
 .                   {printf("lex::char %c\n", yytext[0]); return yytext[0];}
 
 %%
