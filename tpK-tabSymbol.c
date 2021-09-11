@@ -63,10 +63,6 @@ void afficheTSymb(void) {
 		switch(tsymb[i].type) {
 			case T_ENTIER: type = "T_ENTIER";break;
 			case T_TABLEAU: type = "T_TABLEAU";break;
-			case T_FLOAT: type = "T_FLOAT";break;
-			case T_DOUBLE: type = "T_DOUBLE";break;
-			case T_CHAR: type = "T_CHAR";break;
-			case T_VOID: type = "T_VOID";break;
 		}
 		printf("Entrée : %s (%s, %s, %d, %d)\n", tsymb[i].identif, classe, type, \
 			tsymb[i].adresse, tsymb[i].complement);

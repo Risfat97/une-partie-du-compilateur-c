@@ -2,7 +2,8 @@
 #define __TPK_TAB_SYMBOL_H__
 
 typedef enum {C_FONCTION, C_GLOBAL, C_ARG, C_LOCAL} classe_t;
-typedef	enum {T_ENTIER, T_FLOAT, T_DOUBLE, T_CHAR, T_VOID, T_TABLEAU} type_t;
+typedef	enum {T_ENTIER, T_TABLEAU} type_t;
+typedef enum {ADR_GLOB, ADR_LOC, ADR_FONC} curseur_adr_t;
 
 typedef struct { 	/* selon cm-table-symboles.pdf */
 	char *identif; 	/* en général un léxème */
