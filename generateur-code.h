@@ -19,7 +19,7 @@ typedef struct {
 
 /* Variables globales */
 TAB_CODE mem;
-int alpha, aReparer, aReparer1, aReparer2;
+int alpha, aReparer, aReparer1, aReparer2, aReparer3;
 
 /* prototypes */
 void creer_tab_code(void) ;

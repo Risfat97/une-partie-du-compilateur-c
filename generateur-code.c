@@ -36,7 +36,7 @@ void ajouter_code(char *opcode, int valeur, flag_value_t flag){
 
 void afficher_tab_code(){
     int i = 0;
-    printf("\n--- Code généré : (taille code: %d) ---\n\n", mem.taille_code);
+    printf("\n------ Code généré : (taille code: %d) ------\n\n", mem.taille_code);
     while(i < mem.taille_code){
         if(mem.tcode[i].flag == OPCODE_WITH_VALUE)
             printf("\tCode:%d\t\t%s\t%d\n", i, mem.tcode[i].opcode, mem.tcode[i].valeur);
@@ -44,7 +44,7 @@ void afficher_tab_code(){
             printf("\tCode:%d\t\t%s\n", i, mem.tcode[i].opcode);
         i++;
     }
-    printf("\n----------------------\n\n");
+    printf("\n--------------------------------------------\n\n");
 }
 
 void vider_tab_code(){

@@ -16,6 +16,7 @@ int main(int argc, char* argv[]){
     adrCourant[ADR_GLOB] = adrCourant[ADR_LOC] = 0;
     typeVar = T_ENTIER;
     contexte = C_GLOBAL;
+    curseur = ADR_GLOB;
     creerTSymb();
     creer_tab_code();
     if(yyparse() == 0)

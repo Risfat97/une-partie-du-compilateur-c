@@ -34,10 +34,20 @@ DECLARATIONS: DECLARATION
     ;
 
 DECLARATION: PROTOTYPE 
-    | INT IDENT ';'
         {
             contexte = C_GLOBAL;
             curseur = ADR_GLOB;
+        }
+    | LISTE_VAR ';'
+    ;
+
+LISTE_VAR: INT IDENT ',' 
+        {
+            ajoute_variable($2);
+        }
+    LISTE_VAR
+    | INT IDENT
+        {
             ajoute_variable($2);
         }
     ;
@@ -72,9 +82,16 @@ DEFINITIONS: MAIN
             entree_fonction(); 
             contexte = C_LOCAL; 
             curseur = ADR_LOC;
+            ajouter_code("ENTREE", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("PILE", 0, OPCODE_WITH_VALUE);
+            aReparer3 = mem.taille_code - 1;
         } 
     BLOC 
         {
+            reparer_code(aReparer3, adrCourant[ADR_LOC]); 
+            ajouter_code("DEPL", -3, OPCODE_WITH_VALUE);
+            ajouter_code("SORTIE", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("RETOUR", -1, OPCODE_WITHOUT_VALUE);
             sortie_fonction();
         } 
     LISTE_DEF_FUNC
@@ -86,9 +103,16 @@ DEFINITIONS: MAIN
             entree_fonction(); 
             contexte = C_LOCAL; 
             curseur = ADR_LOC;
+            ajouter_code("ENTREE", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("PILE", 0, OPCODE_WITH_VALUE);
+            aReparer3 = mem.taille_code - 1;
         } 
     BLOC 
         {
+            reparer_code(aReparer3, adrCourant[ADR_LOC]); 
+            ajouter_code("DEPL", -3, OPCODE_WITH_VALUE);
+            ajouter_code("SORTIE", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("RETOUR", -1, OPCODE_WITHOUT_VALUE);
             sortie_fonction();
         }
     ;
@@ -123,14 +147,29 @@ LISTE_DEF_FUNC:  DEFINITION_FUNC LISTE_DEF_FUNC
 DEFINITION_FUNC: INT IDENT 
         {
             entree_fonction();
+            ajouter_code("ENTREE", -1, OPCODE_WITHOUT_VALUE);
         }
     SUITE_DEC_FUNC 
         {
             int tmp = recherche_executable($2, yylineno);
-            verifier_fonction($2, tsymb[tmp].complement, nbParams, yylineno, PARAMS);
+            if(tmp != -1){
+                verifier_fonction($2, tsymb[tmp].complement, nbParams, yylineno, PARAMS);
+                ajouter_code("PILE", 0, OPCODE_WITH_VALUE);
+                aReparer3 = mem.taille_code - 1;
+            }
         } 
     BLOC 
         {
+            if(adrCourant[ADR_LOC] > 0){
+                int tmp = nbParams - adrCourant[ADR_LOC];
+                if(tmp < 0)
+                    tmp = - tmp;
+                reparer_code(aReparer3, tmp);
+            }
+                
+            ajouter_code("DEPL", -3 - nbParams, OPCODE_WITH_VALUE);
+            ajouter_code("SORTIE", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("RETOUR", -1, OPCODE_WITHOUT_VALUE);
             sortie_fonction();
         }
     ;
@@ -140,20 +179,15 @@ LISTE_INSTR: INSTRUCTION LISTE_INSTR
     ;
 
 INSTRUCTION: ';'
-    | INT IDENT  ';' 
-        {
-            contexte = C_LOCAL;
-            curseur = ADR_LOC;
-            ajoute_variable($2);
-        }
+    | LISTE_VAR ';'
     | IDENT '=' EXPRESSION ';'
         {
             int tmp = recherche_executable($1, yylineno);
             if(tmp != -1){
                 if(tsymb[tmp].classe == C_GLOBAL)
-                    ajouter_code("DEPL", tsymb[tmp].adresse, OPCODE_WITH_VALUE);
-                else
                     ajouter_code("DEPG", tsymb[tmp].adresse, OPCODE_WITH_VALUE);
+                else
+                    ajouter_code("DEPL", tsymb[tmp].adresse, OPCODE_WITH_VALUE);
             }
         }
     | APPEL_FUNC ';'
@@ -191,7 +225,7 @@ BOUCLE: WHILE '('
     ')' INSTRUCTION
         {
             ajouter_code("SAUT", alpha, OPCODE_WITH_VALUE);
-            reparer_code(alpha, mem.taille_code);
+            reparer_code(aReparer, mem.taille_code);
         }
     ;
 
@@ -268,7 +302,7 @@ APPEL_FUNC: IDENT  '(' ')' {nbArgs = 0;}
             if(tmp != -1){
                 verifier_fonction($1, tsymb[tmp].complement, nbArgs, yylineno, ARGS);
                 ajouter_code("APPEL", tsymb[tmp].adresse, OPCODE_WITH_VALUE);
-                ajouter_code("Pile", -1 * nbArgs, OPCODE_WITH_VALUE);
+                ajouter_code("PILE", -1 * nbArgs, OPCODE_WITH_VALUE);
             }
         }
     ;
@@ -323,7 +357,7 @@ CONDITION: AUTRE_CONDITION '<' CONDITION
 
 AUTRE_CONDITION: '!' AUTRE_CONDITION 
         {
-            ajouter_code("NOT", -1, OPCODE_WITHOUT_VALUE);
+            ajouter_code("NON", -1, OPCODE_WITHOUT_VALUE);
         }
     | EXPRESSION_AR
     ;

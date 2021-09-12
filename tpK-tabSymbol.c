@@ -88,6 +88,7 @@ void afficheTSymb(void) {
 
 void entree_fonction(){
 	base = sommet;
+	adrCourant[ADR_LOC] = 0;
 }
 void sortie_fonction(){
 	afficheTSymb();
