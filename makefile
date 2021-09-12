@@ -1,5 +1,5 @@
-lyc: parseur.tab.o lex.yy.o tpK-tabSymbol.o arbre-abstrait.o main.o
-	gcc -o lyc parseur.tab.o lex.yy.o tpK-tabSymbol.o arbre-abstrait.o main.o
+lyc: parseur.tab.o lex.yy.o tpK-tabSymbol.o generateur-code.o main.o
+	gcc -o lyc parseur.tab.o lex.yy.o tpK-tabSymbol.o generateur-code.o main.o
 
 lex.yy.c: lexeur.l
 	flex lexeur.l
@@ -16,17 +16,17 @@ parseur.tab.o: parseur.tab.c parseur.tab.h
 tpK-tabSymbol.o: tpK-tabSymbol.h tpK-tabSymbol.c
 	gcc -c -Wall tpK-tabSymbol.c
 
-arbre-abstrait.o: arbre-abstrait.h arbre-abstrait.c
-	gcc -c -Wall arbre-abstrait.c
+generateur-code.o: generateur-code.h
+	gcc -c -Wall generateur-code.c
 
-main.o: main.c tpK-tabSymbol.h
+main.o: main.c tpK-tabSymbol.h generateur-code.h
 	gcc -c -Wall main.c
 
 all: 
 	lyc
 
 targz: 
-	tar -zcvf Ndiour_TafsirMbodj.tar.gz main.c parseur.y lexeur.l tpK-tabSymbol.h tpK-tabSymbol.c arbre-abstrait.h arbre-abstrait.c
+	tar -zcvf Ndiour_TafsirMbodj.tar.gz main.c parseur.y lexeur.l tpK-tabSymbol.h tpK-tabSymbol.c generateur-code.h generateur-code.c
 
 clean:
 	rm -f *.o lyc lex.yy.c parseur.tab.*

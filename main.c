@@ -1,4 +1,5 @@
 #include "tpK-tabSymbol.h"
+#include "generateur-code.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -16,9 +17,12 @@ int main(int argc, char* argv[]){
     typeVar = T_ENTIER;
     contexte = C_GLOBAL;
     creerTSymb();
+    creer_tab_code();
     if(yyparse() == 0)
         printf("Analyse réussie\n");
     afficheTSymb();
     viderTSymb();
+    afficher_tab_code();
+    vider_tab_code();
     exit(EXIT_SUCCESS);
 }

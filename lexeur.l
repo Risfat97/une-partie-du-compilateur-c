@@ -1,5 +1,4 @@
 %{
-    #include "arbre-abstrait.h"
     #include "parseur.tab.h"
     #include <stdio.h>
     #include <stdlib.h>

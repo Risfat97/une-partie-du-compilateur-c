@@ -4,8 +4,10 @@
 #include <string.h>	    /* strcmp */   
 
 /* definitions */
-int erreurFatale(char *message) { 
-	fprintf(stderr, "%s\n", message); 
+int erreurFatale(char *message) {
+	printf("\033[%sm", "31");
+	printf("%s\n", message);
+	printf("\033[%sm", "0");
 	exit(-1);
 }
 
